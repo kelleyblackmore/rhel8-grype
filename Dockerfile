@@ -1,24 +1,18 @@
-# Sample Dockerfile for building a container image
-# Customize this file based on your application needs
+FROM registry.access.redhat.com/ubi8:8.10
 
-FROM alpine:3.19
-
-# Add labels for container metadata
-# Replace OWNER/REPO with your GitHub username/organization and repository name
-LABEL org.opencontainers.image.source="https://github.com/OWNER/REPO"
-LABEL org.opencontainers.image.description="Container image built from template"
+LABEL org.opencontainers.image.source="https://github.com/kelleyblackmore/rhel8-grype"
+LABEL org.opencontainers.image.description="RHEL8 UBI container image with Grype vulnerability scanner and pre-populated database"
 LABEL org.opencontainers.image.licenses="MIT"
 
-# Set working directory
-WORKDIR /app
+# Install required packages
+RUN dnf install -y curl tar && \
+    dnf clean all
 
-# Copy application files
-# COPY . .
+# Install grype
+RUN curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
 
-# Install any required packages (uncomment and customize as needed)
-# RUN apk add --no-cache \
-#     bash \
-#     curl
+# Pre-populate the grype vulnerability database
+RUN grype db update
 
-# Set the entrypoint
-CMD ["echo", "Hello from container-template!"]
+ENTRYPOINT ["grype"]
+CMD ["--help"]
