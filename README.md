@@ -1,22 +1,37 @@
-# Container Template
+# rhel8-grype
 
-A repository template for building and pushing container images to GitHub Container Registry (ghcr.io).
+A container image based on **Red Hat UBI 8** (`registry.access.redhat.com/ubi8:8.10`) with [Grype](https://github.com/anchore/grype) (a vulnerability scanner for container images and filesystems) pre-installed along with its vulnerability database.
 
 ## Features
 
+- Based on the official Red Hat Universal Base Image 8 (UBI8 8.10)
+- Grype vulnerability scanner binary installed at `/usr/local/bin/grype`
+- Grype vulnerability database pre-populated at build time
 - GitHub Actions workflow for automated container builds
-- Multi-architecture support via Docker Buildx
 - Automatic tagging based on git refs (branches, tags, PRs)
 - GitHub Container Registry (ghcr.io) integration
-- Build caching for faster builds
 
 ## Quick Start
 
-1. **Use this template**: Click "Use this template" to create a new repository based on this template.
+Pull and run the image:
 
-2. **Customize the Dockerfile**: Modify the `Dockerfile` to build your application.
+```bash
+docker pull ghcr.io/kelleyblackmore/rhel8-grype:main
+```
 
-3. **Push to build**: Push to the `main` branch or create a tag to trigger a build and push to ghcr.io.
+Scan a container image for vulnerabilities:
+
+```bash
+docker run --rm ghcr.io/kelleyblackmore/rhel8-grype:main <image-name>
+# Example:
+docker run --rm ghcr.io/kelleyblackmore/rhel8-grype:main alpine:latest
+```
+
+Scan a local directory (SBOM or filesystem):
+
+```bash
+docker run --rm -v $(pwd):/scan ghcr.io/kelleyblackmore/rhel8-grype:main dir:/scan
+```
 
 ## Workflow Triggers
 
@@ -34,31 +49,13 @@ The workflow automatically generates the following tags:
 - Semantic version from git tag (e.g., `1.0.0`, `1.0`)
 - Git SHA (e.g., `sha-a1b2c3d`)
 
-## Pulling Your Image
+## Updating the Vulnerability Database
 
-Once built, you can pull your image using:
+The database is baked into the image at build time. To refresh it, either rebuild the image or run `grype db update` inside a running container:
 
 ```bash
-docker pull ghcr.io/OWNER/REPO:TAG
+docker run --rm -it ghcr.io/kelleyblackmore/rhel8-grype:main db update
 ```
-
-Replace `OWNER` with your GitHub username or organization, `REPO` with your repository name, and `TAG` with the desired tag.
-
-## Configuration
-
-### Required Permissions
-
-The workflow requires the following permissions (already configured):
-- `contents: read` - To checkout the repository
-- `packages: write` - To push to GitHub Container Registry
-
-### Making Your Package Public
-
-By default, container images are private. To make them public:
-1. Go to your repository's "Packages" section
-2. Select your container image
-3. Go to "Package settings"
-4. Change visibility to "Public"
 
 ## License
 
